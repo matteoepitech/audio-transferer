@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     AudioTr atr;
 
     try {
-        atr.startProgram();
+        atr.startProgram(argv[1]);
     } catch (AudioException e) {
         std::cerr << "AudioTransfer Error: " << e.what() << std::endl;
         return 1;

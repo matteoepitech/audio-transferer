@@ -17,10 +17,10 @@ constexpr std::size_t SAMPLE_RATE = 48000;
 constexpr std::float_t BIT_DURATION = 0.05f;
 /* @brief The amplitude of the sound, 0.5 will make the sound lower by 50% */
 constexpr std::float_t AMPLITUDE = 0.5f;
-/* @brief The bit 0 frequency used */
-constexpr std::float_t FREQ_0 = 500.0f;
-/* @brief The bit 1 frequency used */
-constexpr std::float_t FREQ_1 = 2000.0f;
+/* @brief The bit 0 frequency used. The max is 24kHZ since the sample rate is 48kHZ */
+constexpr std::float_t FREQ_0 = 18000.0f;
+/* @brief The bit 1 frequency used. The max is 24kHZ since the sample rate is 48kHZ */
+constexpr std::float_t FREQ_1 = 19500.0f;
 
 /* @brief AudioTr Class */
 class AudioTr
@@ -28,8 +28,10 @@ class AudioTr
 public:
     /**
      * @brief Start the program. This function is the first called.
+     *
+     * @param mode      The mode "-tx" for transmission and "-rx" for receipter
      */
-    void startProgram(void);
+    void startProgram(char *mode);
 };
     
 /* @brief AudioException Class */
@@ -41,7 +43,10 @@ class AudioException : std::exception
          *
          * @param msg    The content of the error message
          */
-        explicit AudioException(std::string msg) noexcept {}
+        explicit AudioException(std::string msg) noexcept
+        {
+            this->_msg = msg;
+        }
 
     public:
         /**
