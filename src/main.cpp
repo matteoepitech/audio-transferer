@@ -5,10 +5,20 @@
 ** Main file
 */
 
+#include "AudioTr.hpp"
 #include <iostream>
 
 int main(int argc, char *argv[])
 {
-    std::cout << "Hello World!" << std::endl;
+    AudioTr atr;
+
+    try {
+        atr.startProgram();
+    } catch (AudioException e) {
+        std::cerr << "AudioTransfer Error: " << e.what() << std::endl;
+        return 1;
+    } catch (std::exception e) {
+        std::cerr << "Unknown Error: " << e.what() << std::endl;
+    }
     return 0;
 }
