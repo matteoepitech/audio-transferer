@@ -2,5 +2,6 @@
 
 rm -rf ./build/
 mkdir -p build
-cd build && cmake ..
-make
+cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+cmake --build build
+mv build/audiotr .
