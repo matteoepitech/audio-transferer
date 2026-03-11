@@ -5,7 +5,7 @@
 ** AudioTR source main file
 */
 
-#include "Transfer/Transfer.hpp"
+#include "Transmission/Transmission.hpp"
 #include "Utils/MessageConverter.hpp"
 #include "AudioTr.hpp"
  
@@ -14,10 +14,10 @@
  */
 void AudioTr::startProgram(void)
 {
-    Transfer transfer;
+    Transmission transmission;
 
     Pa_Initialize();
-    transfer.sendMessage(MessageConverter::convertStringMessage("Hello World!"));
+    transmission.sendMessage(MessageConverter::convertStringMessage("Hello World!"));
     Pa_Terminate();
     return;
 }

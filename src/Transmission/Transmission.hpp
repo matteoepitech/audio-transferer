@@ -1,8 +1,8 @@
 /*
 ** DEL PROJECT, 2026
-** src/Transfer/Transfer
+** src/Transmission/Transmission
 ** File description:
-** Transfer header file
+** Transmission header file
 */
 
 #include "../AudioTr.hpp"
@@ -11,8 +11,8 @@
 
 #pragma once
 
-/* @brief Transfer Class */
-class Transfer
+/* @brief Transmission Class */
+class Transmission
 {
 public:
     /**

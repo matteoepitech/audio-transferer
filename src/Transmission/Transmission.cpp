@@ -1,18 +1,18 @@
 /*
 ** DEL PROJECT, 2026
-** src/Transfer/Transfer
+** src/Transmission/Transmission
 ** File description:
-** Transfer source file
+** Transmission source file
 */
 
-#include "Transfer.hpp"
+#include "Transmission.hpp"
 
 /**
  * @brief Send a message. R-Value reference.
  *
  * @param message    The message in a array of a bit, 0, 1.
  */
-void Transfer::sendMessage(std::vector<char> &&message)
+void Transmission::sendMessage(std::vector<char> &&message)
 {
     PaStream *stream = nullptr;
     double phase = 0;
@@ -31,7 +31,7 @@ void Transfer::sendMessage(std::vector<char> &&message)
  *
  * @param message    The message in a array of a bit, 0, 1.
  */
-void Transfer::sendMessage(std::vector<char> &message)
+void Transmission::sendMessage(std::vector<char> &message)
 {
     PaStream *stream = nullptr;
     double phase = 0;
@@ -52,7 +52,7 @@ void Transfer::sendMessage(std::vector<char> &message)
  * @param bit     The bit to send
  * @param phase   The phase of the sin wave
  */
-void Transfer::sendBit(PaStream *stream, bool bit, double *phase)
+void Transmission::sendBit(PaStream *stream, bool bit, double *phase)
 {
     int frames = SAMPLE_RATE * BIT_DURATION;
     std::float_t buffer[frames];
