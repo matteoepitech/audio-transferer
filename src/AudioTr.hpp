@@ -20,7 +20,9 @@ constexpr std::float_t AMPLITUDE = 0.5f;
 /* @brief The bit 0 frequency used. The max is 24kHZ since the sample rate is 48kHZ */
 constexpr std::float_t FREQ_0 = 18000.0f;
 /* @brief The bit 1 frequency used. The max is 24kHZ since the sample rate is 48kHZ */
-constexpr std::float_t FREQ_1 = 19500.0f;
+constexpr std::float_t FREQ_1 = FREQ_0 + 1500.0f;
+/* @brief The preambul frequency used. The max is 24kHZ since the sample rate is 48kHZ */
+constexpr std::float_t FREQ_PREAMBUL = FREQ_1 + 3000.0f;
 
 /* @brief AudioTr Class */
 class AudioTr

@@ -5,6 +5,7 @@
 ** Receipter source file
 */
 
+#include "../Utils/MessageConverter.hpp"
 #include "Receipter.hpp"
 #include <iostream>
 
@@ -40,6 +41,8 @@ float goertzel(const float* samples, std::size_t N, float freq)
 std::vector<bool> Receipter::listenMessage(void)
 {
     const std::size_t samplesPerBit = SAMPLE_RATE * BIT_DURATION;
+    std::size_t preambulCounter = 0;
+    std::size_t endCounter = 0;
     PaStream *stream = nullptr;
     std::vector<bool> message;
     std::vector<float> buffer;
@@ -50,31 +53,61 @@ std::vector<bool> Receipter::listenMessage(void)
     std::cerr << "Listening message.. You will see output on stdout" << std::endl;
     while (true) {
         float b[256] = {0};
+
         Pa_ReadStream(stream, b, 256);
         buffer.insert(buffer.end(), b, b + 256);
         if (buffer.size() >= samplesPerBit) {
-            float p0 = std::fabs(goertzel(buffer.data(), samplesPerBit, FREQ_0));
-            float p1 = std::fabs(goertzel(buffer.data(), samplesPerBit, FREQ_1));
-            float power = p0 + p1;
-            float dominant = (p0 > p1) ? p0 : p1;
-            float weaker = (p0 > p1) ? p1 : p0;
+            float preambul = std::fabs(goertzel(buffer.data() + buffer.size() - samplesPerBit, samplesPerBit, FREQ_PREAMBUL));
 
-            if (power < 0.5f) {
+            preambul /= (samplesPerBit * samplesPerBit);
+            if (preambul > 5e-7) {
+                preambulCounter++;
+            } else if (preambulCounter > 80) {
+                preambulCounter = 0;
                 buffer.clear();
-                continue;
-            }
-            if (weaker <= 1e-9f || (dominant / weaker) < 2.5f) {
-                buffer.clear();
-                continue;
-            }
-            if (p0 > p1) {
-                message.push_back(0);
-                std::cout << 0 << std::flush;
+                std::cerr << "Synchronization done: Listening for message..." << std::endl;
+                while (true) {
+                    Pa_ReadStream(stream, b, 256);
+                    buffer.insert(buffer.end(), b, b + 256);
+                    if (endCounter > 100) {
+                        std::cerr << std::endl << "End of the receiving." << std::endl;
+                        break;
+                    }
+                    while (buffer.size() >= samplesPerBit) {
+                        float p0 = std::fabs(goertzel(buffer.data(), samplesPerBit, FREQ_0));
+                        float p1 = std::fabs(goertzel(buffer.data(), samplesPerBit, FREQ_1));
+                        float power = p0 + p1;
+                        float dominant = (p0 > p1) ? p0 : p1;
+                        float weaker = (p0 > p1) ? p1 : p0;
+
+                        if (power < 0.5f) {
+                            buffer.erase(buffer.begin(), buffer.begin() + samplesPerBit);
+                            endCounter++;
+                            continue;
+                        }
+                        if (weaker > 1e-9f && (dominant / weaker) < 2.5f) {
+                            buffer.erase(buffer.begin(), buffer.begin() + samplesPerBit);
+                            endCounter++;
+                            continue;
+                        }
+                        if (p0 > p1) {
+                            message.push_back(0);
+                            std::cerr << 0 << std::flush;
+                        } else {
+                            message.push_back(1);
+                            std::cerr << 1 << std::flush;
+                        }
+                        endCounter = 0;
+                        buffer.erase(buffer.begin(), buffer.begin() + samplesPerBit);
+                    }
+                }
+                std::cerr << "Decoded message:" << std::endl;
+                std::cout << MessageConverter::convertMessageString(message) << std::endl;
+                message.clear();
+                endCounter = 0;
             } else {
-                message.push_back(1);
-                std::cout << 1 << std::flush;
+                preambulCounter = 0;
             }
-            buffer.clear();
         }
     }
     Pa_CloseStream(stream);
