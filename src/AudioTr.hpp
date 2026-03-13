@@ -31,9 +31,10 @@ public:
     /**
      * @brief Start the program. This function is the first called.
      *
-     * @param mode      The mode "-tx" for transmission and "-rx" for receipter
+     * @param mode        The mode "-tx" for transmission and "-rx" for receipter
+     * @param fileName    The file content to transmit in the ""-tx"" mode
      */
-    void startProgram(char *mode);
+    void startProgram(char *mode, char *fileName);
 };
     
 /* @brief AudioException Class */

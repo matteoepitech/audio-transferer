@@ -123,11 +123,8 @@ std::vector<bool> Receipter::listenMessage(void)
                         buffer.erase(buffer.begin(), buffer.begin() + samplesPerBit);
                     }
                 }
-                std::cerr << "Decoded message:" << std::endl;
-                std::cout << MessageConverter::convertMessageString(message) << std::endl;
-                message.clear();
                 endCounter = 0;
-                break; // remove this if you want to continue the listening...
+                return message; // remove this if you want to continue the listening...
             } else {
                 preambulCounter = 0;
             }
