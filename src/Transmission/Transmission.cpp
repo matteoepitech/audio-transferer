@@ -8,6 +8,22 @@
 #include "Transmission.hpp"
 
 /**
+ * @brief Send a silence gap for clean transition between preambul and data.
+ *
+ * @param stream  The stream of PortAudio to send the data to
+ */
+void Transmission::sendSilence(PaStream *stream)
+{
+    int frames = SAMPLE_RATE * BIT_DURATION;
+    std::float_t buffer[frames];
+
+    std::fill(buffer, buffer + frames, 0.0f);
+    for (int i = 0; i < 3; i++) {
+        Pa_WriteStream(stream, buffer, frames);
+    }
+}
+
+/**
  * @brief Send the preambul for the sync of the receipter.
  *
  * @param stream  The stream of PortAudio to send the data to
@@ -33,6 +49,8 @@ void Transmission::sendMessage(std::vector<char> &&message)
     Pa_OpenDefaultStream(&stream, 0, 1, paFloat32, SAMPLE_RATE, 256, NULL, NULL);
     Pa_StartStream(stream);
     sendPreambul(stream, &phase);
+    sendSilence(stream);
+    phase = 0;
     for (std::size_t i = 0; i < message.size(); i++) {
         SenderBit::sendBit(stream, message.at(i), &phase);
     }
@@ -53,6 +71,8 @@ void Transmission::sendMessage(std::vector<char> &message)
     Pa_OpenDefaultStream(&stream, 0, 1, paFloat32, SAMPLE_RATE, 256, NULL, NULL);
     Pa_StartStream(stream);
     sendPreambul(stream, &phase);
+    sendSilence(stream);
+    phase = 0;
     for (std::size_t i = 0; i < message.size(); i++) {
         SenderBit::sendBit(stream, message.at(i), &phase);
     }

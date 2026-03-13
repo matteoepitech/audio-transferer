@@ -65,7 +65,29 @@ std::vector<bool> Receipter::listenMessage(void)
             } else if (preambulCounter > 80) {
                 preambulCounter = 0;
                 buffer.clear();
-                std::cerr << "Synchronization done: Listening for message..." << std::endl;
+                std::cerr << "Synchronization done: Aligning bits..." << std::endl;
+                while (buffer.size() < samplesPerBit * 8) {
+                    Pa_ReadStream(stream, b, 256);
+                    buffer.insert(buffer.end(), b, b + 256);
+                }
+                std::size_t bestOffset = 0;
+                float bestClarity = 0;
+                for (std::size_t off = 0; off + samplesPerBit <= buffer.size(); off += 64) {
+                    float p0 = std::fabs(goertzel(buffer.data() + off, samplesPerBit, FREQ_0));
+                    float p1 = std::fabs(goertzel(buffer.data() + off, samplesPerBit, FREQ_1));
+                    float power = p0 + p1;
+                    if (power < 0.5f)
+                        continue;
+                    float dominant = (p0 > p1) ? p0 : p1;
+                    float weaker = (p0 > p1) ? p1 : p0;
+                    float clarity = (weaker > 1e-9f) ? (dominant / weaker) : 1000.0f;
+                    if (clarity > bestClarity) {
+                        bestClarity = clarity;
+                        bestOffset = off;
+                    }
+                }
+                buffer.erase(buffer.begin(), buffer.begin() + bestOffset);
+                std::cerr << "Bit alignment found (offset=" << bestOffset << "): Listening for message..." << std::endl;
                 while (true) {
                     Pa_ReadStream(stream, b, 256);
                     buffer.insert(buffer.end(), b, b + 256);
@@ -105,6 +127,7 @@ std::vector<bool> Receipter::listenMessage(void)
                 std::cout << MessageConverter::convertMessageString(message) << std::endl;
                 message.clear();
                 endCounter = 0;
+                break; // remove this if you want to continue the listening...
             } else {
                 preambulCounter = 0;
             }

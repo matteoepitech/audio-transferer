@@ -38,4 +38,11 @@ private:
      * @param phase   The phase of the sin wave
      */
     void sendPreambul(PaStream *stream, double *phase);
+
+    /**
+     * @brief Send a silence gap for clean transition between preambul and data.
+     *
+     * @param stream  The stream of PortAudio to send the data to
+     */
+    void sendSilence(PaStream *stream);
 };
