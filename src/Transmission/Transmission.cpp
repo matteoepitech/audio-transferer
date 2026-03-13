@@ -6,6 +6,33 @@
 */
 
 #include "Transmission.hpp"
+#include <iostream>
+#include <iomanip>
+
+/**
+ * @brief Print a progress bar in the terminal.
+ *
+ * @param percent Progress percentage (0.0 → 100.0)
+ */
+static void printProgressBar(float percent)
+{
+    const int barWidth = 50;
+    int pos = static_cast<int>(barWidth * percent);
+
+    std::cout << "\033[1F";
+    std::cout << "[";
+    for (int i = 0; i < barWidth; ++i) {
+        if (i < pos) {
+            std::cout << "=";
+        } else if (i == pos) {
+            std::cout << ">";
+        } else {
+            std::cout << " ";
+        }
+    }
+    std::cout << "] ";
+    std::cout << std::fixed << std::setprecision(2) << percent * 100 << " %" << std::endl;
+}
 
 /**
  * @brief Send a silence gap for clean transition between preambul and data.
@@ -52,6 +79,7 @@ void Transmission::sendMessage(std::vector<char> &&message)
     sendSilence(stream);
     phase = 0;
     for (std::size_t i = 0; i < message.size(); i++) {
+        printProgressBar(static_cast<std::float_t>(static_cast<std::float_t>(i) / (message.size() - 1)));
         SenderBit::sendBit(stream, message.at(i), &phase);
     }
     Pa_StopStream(stream);
@@ -74,6 +102,7 @@ void Transmission::sendMessage(std::vector<char> &message)
     sendSilence(stream);
     phase = 0;
     for (std::size_t i = 0; i < message.size(); i++) {
+        printProgressBar(static_cast<std::float_t>(static_cast<std::float_t>(i) / (message.size() - 1)));
         SenderBit::sendBit(stream, message.at(i), &phase);
     }
     Pa_StopStream(stream);
