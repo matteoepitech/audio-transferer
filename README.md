@@ -1,12 +1,13 @@
 # Audio Transferer
 
-Audio Transferer is a text messaging system that transmits data between computers using FSK (Frequency Shift Keying) modulation over audio. The transmitter encodes text into high-frequency audio tones, and the receiver decodes them in real-time using the Goertzel algorithm.
+Audio Transferer is a text messaging system that sends data between computers using sound. The transmitter turns text into sound tones, and the receiver decodes them in real time with the Goertzel algorithm.
+You will probably never manage to make it work, since these sound tones are also used in the natural world.
 
 ## How it works
 
-- **Bit 0** → 18 kHz tone
-- **Bit 1** → 19.5 kHz tone
-- **Preambule** → 22.5 kHz synchronization signal
+- **Bit 0** → 1000 kHz sound tone
+- **Bit 1** → 2000 kHz sound tone
+- **Preambule** → 3000 kHz synchronization sound
 - **Bit duration** → 50 ms (~2.5 characters/second)
 
 ## Dependencies
@@ -26,8 +27,8 @@ vcpkg install
 ## Usage
 
 ```bash
-./build/audiotr -tx <file>
-./build/audiotr -rx
+./build/soundtr -tx <file>
+./build/soundtr -rx
 ```
 
-Then choose between **transmitter** or **receiver** mode. The transmitter reads from a file and sends the content as audio. The receiver listens on the microphone and decodes the message.
+Then choose between **transmitter** or **receiver** mode. The transmitter reads from a file and sends the content as sound. The receiver listens on the microphone and decodes the message.
