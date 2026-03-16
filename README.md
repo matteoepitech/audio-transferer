@@ -19,6 +19,7 @@ Make sure you have these installed:
 ## Build
 
 ```bash
+vcpkg install
 ./build.sh
 ```
 

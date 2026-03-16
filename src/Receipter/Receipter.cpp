@@ -66,23 +66,35 @@ std::vector<bool> Receipter::listenMessage(void)
                 preambulCounter = 0;
                 buffer.clear();
                 std::cerr << "Synchronization done: Aligning bits..." << std::endl;
-                while (buffer.size() < samplesPerBit * 8) {
+                while (buffer.size() < samplesPerBit * 16) {
                     Pa_ReadStream(stream, b, 256);
                     buffer.insert(buffer.end(), b, b + 256);
                 }
-                std::size_t bestOffset = 0;
-                float bestClarity = 0;
+                std::size_t dataStart = 0;
                 for (std::size_t off = 0; off + samplesPerBit <= buffer.size(); off += 64) {
                     float p0 = std::fabs(goertzel(buffer.data() + off, samplesPerBit, FREQ_0));
                     float p1 = std::fabs(goertzel(buffer.data() + off, samplesPerBit, FREQ_1));
-                    float power = p0 + p1;
-                    if (power < 0.5f)
-                        continue;
-                    float dominant = (p0 > p1) ? p0 : p1;
-                    float weaker = (p0 > p1) ? p1 : p0;
-                    float clarity = (weaker > 1e-9f) ? (dominant / weaker) : 1000.0f;
-                    if (clarity > bestClarity) {
-                        bestClarity = clarity;
+                    if (p0 + p1 >= 0.5f) {
+                        dataStart = off;
+                        break;
+                    }
+                }
+                std::size_t bestOffset = dataStart;
+                float bestClarity = -1;
+                for (std::size_t off = dataStart; off < dataStart + samplesPerBit && off + samplesPerBit <= buffer.size(); off += 32) {
+                    float totalClarity = 0;
+                    for (std::size_t bitStart = off; bitStart + samplesPerBit <= buffer.size(); bitStart += samplesPerBit) {
+                        float p0 = std::fabs(goertzel(buffer.data() + bitStart, samplesPerBit, FREQ_0));
+                        float p1 = std::fabs(goertzel(buffer.data() + bitStart, samplesPerBit, FREQ_1));
+                        float power = p0 + p1;
+                        if (power < 0.5f)
+                            continue;
+                        float dominant = (p0 > p1) ? p0 : p1;
+                        float weaker = (p0 > p1) ? p1 : p0;
+                        totalClarity += (weaker > 1e-9f) ? (dominant / weaker) : 1000.0f;
+                    }
+                    if (totalClarity > bestClarity) {
+                        bestClarity = totalClarity;
                         bestOffset = off;
                     }
                 }
@@ -107,11 +119,7 @@ std::vector<bool> Receipter::listenMessage(void)
                             endCounter++;
                             continue;
                         }
-                        if (weaker > 1e-9f && (dominant / weaker) < 2.5f) {
-                            buffer.erase(buffer.begin(), buffer.begin() + samplesPerBit);
-                            endCounter++;
-                            continue;
-                        }
+                        endCounter = 0;
                         if (p0 > p1) {
                             message.push_back(0);
                             std::cerr << 0 << std::flush;
@@ -119,7 +127,6 @@ std::vector<bool> Receipter::listenMessage(void)
                             message.push_back(1);
                             std::cerr << 1 << std::flush;
                         }
-                        endCounter = 0;
                         buffer.erase(buffer.begin(), buffer.begin() + samplesPerBit);
                     }
                 }
